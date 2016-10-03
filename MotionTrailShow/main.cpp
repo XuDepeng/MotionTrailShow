@@ -207,8 +207,8 @@ int main(int argc, char** argv) {
 
 	dp->setUpdateCallback(new DrawpixelsUpdateCallback(mp.getPosition()));
 #else
-	osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
-	geometry->setDataVariance(osg::Object::DYNAMIC);
+	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+	geom->setDataVariance(osg::Object::DYNAMIC);
 
 	// light off, from wherever the image looks the same
 	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
@@ -219,21 +219,21 @@ int main(int argc, char** argv) {
 	v->push_back(osg::Vec3(429920.13929, 3387250.20839, 1050.f));
 	v->push_back(osg::Vec3(429920.13929, 3387250.20839, 1650.f));
 	v->push_back(osg::Vec3(429320.13929, 3387250.20839, 1650.f));
-	geometry->setVertexArray(v.get());
+	geom->setVertexArray(v.get());
 
 	osg::ref_ptr<osg::Vec3Array> normal = new osg::Vec3Array;
 	normal->push_back(osg::Y_AXIS);
-	geometry->setNormalArray(normal.get());
-	geometry->setNormalBinding(osg::Geometry::BIND_OVERALL);
+	geom->setNormalArray(normal.get());
+	geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
 
 	osg::ref_ptr<osg::Vec2Array> tcoords = new osg::Vec2Array;
 	tcoords->push_back(osg::Vec2(0.0f, 0.0f));
 	tcoords->push_back(osg::Vec2(1.0f, 0.0f));
 	tcoords->push_back(osg::Vec2(1.0f, 1.0f));
 	tcoords->push_back(osg::Vec2(0.0f, 1.0f));
-	geometry->setTexCoordArray(0, tcoords.get());
+	geom->setTexCoordArray(0, tcoords.get());
 
-	geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
 
 	osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
 	s_image_red->scaleImage(512, 512, 1);
@@ -241,19 +241,33 @@ int main(int argc, char** argv) {
 	s_image_yellow->scaleImage(512, 512, 1);
 
 	texture->setImage(s_image_red);
-	geometry->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+	geom->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
 	// blend for transparency
-	geometry->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	geometry->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	geode->addDrawable(geometry);
+	geom->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	geom->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	geode->addDrawable(geom);
 #endif
 	root->addChild(geode);
 
+	// speed
 	s_speed = new osgText::Text;
 	s_speed->setDataVariance(osg::Object::DYNAMIC);
 	root->addChild(create_text(s_speed.get()));
 
+	osg::Vec3 sp(429320.13929, 3387250.20839, 1050.f);
+	osg::Vec3 ep(430320.13929, 3387250.20839, 1050.f);
+	osg::ref_ptr<osg::Geometry> beam(new osg::Geometry);
+	osg::ref_ptr<osg::Vec3Array> points = new osg::Vec3Array;
+	points->push_back(sp);
+	points->push_back(ep);
+	osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+	color->push_back(osg::Vec4(1.0, 0.0, 0.0, 1.0));
+	beam->setVertexArray(points.get());
+	beam->setColorArray(color.get());
+	beam->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
+	beam->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, 2));
+	geode->addDrawable(beam);
 #if 1
 	osg::ref_ptr<osgText::Text> logo = new osgText::Text;
 	logo->setText(L"虚拟地理环境教育部重点实验室");
@@ -265,7 +279,7 @@ int main(int argc, char** argv) {
 
 	MotionParser mp;
 	mp.parse("../data/motion_xy.csv");
-	geometry->setUpdateCallback(new GeomUpdateCallback(mp.getPosition()));
+	geom->setUpdateCallback(new GeomUpdateCallback(mp.getPosition()));
 
 	viewer.addEventHandler(new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()));
 	viewer.addEventHandler(new osgViewer::ThreadingHandler);
