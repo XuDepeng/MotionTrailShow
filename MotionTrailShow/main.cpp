@@ -13,6 +13,8 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
+#include <osgUtil/optimizer>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
@@ -50,18 +52,18 @@ struct DrawpixelsUpdateCallback :public osg::Drawable::UpdateCallback {
 		osg::ref_ptr<osg::DrawPixels> dp = dynamic_cast<osg::DrawPixels*>(drawable);
 
 		switch (m_pos[m_idx].state) {
-			case CONSTANT:
-				dp->setImage(s_image_yellow);
-				break;
-			case ACCELERATE:
-				dp->setImage(s_image_red);
-				break;
-			case DECELERTATE:
-				dp->setImage(s_image_blue);
-				break;
-			default:
-				dp->setImage(s_image_yellow);
-				break;
+		case CONSTANT:
+			dp->setImage(s_image_yellow);
+			break;
+		case ACCELERATE:
+			dp->setImage(s_image_red);
+			break;
+		case DECELERTATE:
+			dp->setImage(s_image_blue);
+			break;
+		default:
+			dp->setImage(s_image_yellow);
+			break;
 		}
 
 		osg::Vec3 cur_pos = osg::Vec3(m_pos[m_idx].x, m_pos[m_idx].y, (float)m_pos[m_idx].h * 2 - 90.f);
@@ -106,24 +108,24 @@ struct GeomUpdateCallback :public osg::Drawable::UpdateCallback {
 
 		// update texture
 		osg::ref_ptr<osg::StateAttribute> sa =
-				geom->getOrCreateStateSet()->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+			geom->getOrCreateStateSet()->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
 		osg::ref_ptr<osg::Texture2D> texture = (osg::Texture2D*)sa->asTexture();
 		switch (m_pos[m_idx].state) {
-			case CONSTANT:
-				texture->setImage(s_image_yellow);
-				break;
-			case ACCELERATE:
-				texture->setImage(s_image_red);
-				break;
-			case DECELERTATE:
-				texture->setImage(s_image_blue);
-				break;
-			default:
-				texture->setImage(s_image_yellow);
-				break;
+		case CONSTANT:
+			texture->setImage(s_image_yellow);
+			break;
+		case ACCELERATE:
+			texture->setImage(s_image_red);
+			break;
+		case DECELERTATE:
+			texture->setImage(s_image_blue);
+			break;
+		default:
+			texture->setImage(s_image_yellow);
+			break;
 		}
 
-		osg::Vec3 cur_pos = osg::Vec3(m_pos[m_idx].x, m_pos[m_idx].y, (float)m_pos[m_idx].h * 2 - 90.f);
+		osg::Vec3 cur_pos = osg::Vec3(m_pos[m_idx].x - 300.f, m_pos[m_idx].y, (float)m_pos[m_idx].h * 2 - 90.f);
 
 		// update speed
 		if (m_idx > 0) {
@@ -132,6 +134,21 @@ struct GeomUpdateCallback :public osg::Drawable::UpdateCallback {
 			s += " m/s";
 			s_speed->setText(s);
 			s_speed->setPosition(osg::Vec3(cur_pos.x() + 180.f, cur_pos.y(), cur_pos.z() + 650));
+
+			osg::ref_ptr<osg::Geode> geode = dynamic_cast<osg::Geode*>(geom->getParent(0));
+			osg::Vec3 sp(m_pos[m_idx - 1].x, m_pos[m_idx - 1].y, 2 * m_pos[m_idx - 1].h + 10.f);
+			osg::Vec3 ep(m_pos[m_idx].x, m_pos[m_idx].y, 2 * m_pos[m_idx].h + 10.f);
+			osg::ref_ptr<osg::Geometry> beam = new osg::Geometry;
+			osg::ref_ptr<osg::Vec3Array> points = new osg::Vec3Array;
+			points->push_back(sp);
+			points->push_back(ep);
+			osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+			color->push_back(osg::Vec4(1.0, 0.0, 0.0, 1.0));
+			beam->setVertexArray(points.get());
+			beam->setColorArray(color.get());
+			beam->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
+			beam->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, 2));
+			geode->addDrawable(beam);
 		}
 
 		(*vertices)[0] = cur_pos;
@@ -192,6 +209,7 @@ int main(int argc, char** argv) {
 	s_image_yellow = osgDB::readImageFile("../data/human_yellow.png");
 
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	geode->setDataVariance(osg::Object::DYNAMIC);
 	// human
 #if 0
 	osg::ref_ptr<osg::DrawPixels> dp = new osg::DrawPixels;
@@ -255,25 +273,14 @@ int main(int argc, char** argv) {
 	s_speed->setDataVariance(osg::Object::DYNAMIC);
 	root->addChild(create_text(s_speed.get()));
 
-	osg::Vec3 sp(429320.13929, 3387250.20839, 1050.f);
-	osg::Vec3 ep(430320.13929, 3387250.20839, 1050.f);
-	osg::ref_ptr<osg::Geometry> beam(new osg::Geometry);
-	osg::ref_ptr<osg::Vec3Array> points = new osg::Vec3Array;
-	points->push_back(sp);
-	points->push_back(ep);
-	osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-	color->push_back(osg::Vec4(1.0, 0.0, 0.0, 1.0));
-	beam->setVertexArray(points.get());
-	beam->setColorArray(color.get());
-	beam->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
-	beam->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, 2));
-	geode->addDrawable(beam);
-#if 1
+#if 0
 	osg::ref_ptr<osgText::Text> logo = new osgText::Text;
 	logo->setText(L"虚拟地理环境教育部重点实验室");
 	root->addChild(create_text(logo.get()));
 #endif
 
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(root.get());
 	osgViewer::Viewer viewer(arg);
 	viewer.setSceneData(root);
 
