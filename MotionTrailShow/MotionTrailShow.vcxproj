@@ -87,12 +87,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\osgearth2.7.0x64\include;E:\PROJ\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\osgearth2.7.0x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>E:\osgearth2.7.0x64\lib;E:\PROJ\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgGAd.lib;osgViewerd.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\osgearth2.7.0x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgGAd.lib;osgTextd.lib;osgViewerd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,14 +116,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\osgearth2.7.0x64\include;E:\PROJ\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\osgearth2.7.0x64\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>E:\osgearth2.7.0x64\lib;E:\PROJ\release\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osg.lib;osgDB.lib;osgGA.lib;osgViewer.lib;proj.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\osgearth2.7.0x64\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>osg.lib;osgDB.lib;osgGA.lib;osgText.lib;osgViewer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

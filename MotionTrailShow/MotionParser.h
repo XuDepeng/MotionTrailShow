@@ -15,6 +15,10 @@ typedef struct Position {
 	float y;
 	int h;
 	SS state;
+
+	float operator-(const Position& rhs) {
+		return sqrt((x - rhs.x) * (x - rhs.x) + (y - rhs.y) * (y - rhs.y));
+	}
 } Pos;
 
 class MotionParser {
