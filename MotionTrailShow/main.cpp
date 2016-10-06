@@ -6,6 +6,7 @@
 #include <osg/Group>
 #include <osg/ShapeDrawable>
 #include <osg/DrawPixels>
+#include <osg/PositionAttitudeTransform>
 
 #include <osgDB/ReadFile>
 #include <osgGA/StateSetManipulator>
@@ -22,8 +23,8 @@
 
 #include "MotionParser.h"
 
-#define RANDOM_DATA
-#define PI 3.1415926
+#define MODEL 1
+#define PNG 0
 
 static osg::ref_ptr<osg::Image> s_image_red, s_image_blue, s_image_yellow;
 static osg::ref_ptr<osgText::Text> s_speed;
@@ -170,6 +171,90 @@ struct GeomUpdateCallback :public osg::Drawable::UpdateCallback {
 	int m_idx;
 };
 
+struct PatUpdateCallback :public osg::NodeCallback {
+	PatUpdateCallback(const vector<Pos>& pos) : m_pos(pos), m_idx(0) {
+	}
+
+	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)	{
+		if (!s_update) {
+			return;;
+		}
+
+		if (m_idx >= m_pos.size()) {
+			return;
+		}
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> pat =
+			dynamic_cast<osg::PositionAttitudeTransform*>(node);
+
+		osg::Vec3 cur_pos = osg::Vec3(m_pos[m_idx].x, m_pos[m_idx].y, (float)m_pos[m_idx].h * 2 + 450.f);
+		pat->setPosition(cur_pos);
+
+		// update speed
+		if (m_idx > 0) {
+			float offset = m_pos[m_idx] - m_pos[m_idx - 1];
+			std::string s = std::to_string(offset);
+			s += " m/s";
+			s_speed->setText(s);
+			s_speed->setPosition(osg::Vec3(cur_pos.x(), cur_pos.y(), cur_pos.z() + 250));
+		}
+
+		m_idx++;
+		s_update = false;
+
+		// note, callback is responsible for scenegraph traversal so
+		// they must call traverse(node,nv) to ensure that the
+		// scene graph subtree (and associated callbacks) are traversed.
+		traverse(node, nv);
+	}
+
+	vector<Pos> m_pos;
+	int m_idx;
+};
+
+struct GeodeUpdateCallback :public osg::NodeCallback {
+	GeodeUpdateCallback(const vector<Pos>& pos) : m_pos(pos), m_idx(0) {
+	}
+
+	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)	{
+		if (!s_update) {
+			printf("te\n");
+			return;
+		}
+
+		if (m_idx >= m_pos.size()) {
+			return;
+		}
+
+		osg::ref_ptr<osg::Geode> geode = dynamic_cast<osg::Geode*>(node);
+		osg::Vec3 cur_pos = osg::Vec3(m_pos[m_idx].x, m_pos[m_idx].y, (float)m_pos[m_idx].h * 2 + 450.f);
+
+		// update speed
+		if (m_idx > 0) {
+			osg::Vec3 sp(m_pos[m_idx - 1].x, m_pos[m_idx - 1].y, 2 * m_pos[m_idx - 1].h + 10.f);
+			osg::Vec3 ep(m_pos[m_idx].x, m_pos[m_idx].y, 2 * m_pos[m_idx].h + 10.f);
+			osg::ref_ptr<osg::Geometry> beam = new osg::Geometry;
+			osg::ref_ptr<osg::Vec3Array> points = new osg::Vec3Array;
+			points->push_back(sp);
+			points->push_back(ep);
+			osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+			color->push_back(osg::Vec4(1.0, 0.0, 0.0, 1.0));
+			beam->setVertexArray(points.get());
+			beam->setColorArray(color.get());
+			beam->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
+			beam->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, 2));
+			geode->addDrawable(beam.get());
+		}
+
+		m_idx++;
+		s_update = false;
+		traverse(node, nv);
+	}
+
+	vector<Pos> m_pos;
+	int m_idx;
+};
+
 osg::ref_ptr<osg::Geode> create_text(osgText::Text* t) {
 	osg::ref_ptr<osg::GraphicsContext::WindowingSystemInterface> wsi = osg::GraphicsContext::getWindowingSystemInterface();
 	unsigned int width = 0, height = 0;
@@ -200,31 +285,23 @@ int main(int argc, char** argv) {
 	arg.getApplicationUsage()->setCommandLineUsage(arg.getApplicationName() + " [options] filename ...");
 
 	osg::ref_ptr<osg::Group> root = new osg::Group;
+	root->setDataVariance(osg::Object::DYNAMIC);
+	std::cout << root << std::endl;
+
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	geode->setDataVariance(osg::Object::DYNAMIC);
+	root->addChild(geode.get());
+
 	osg::ref_ptr<osg::Node> terrain = osgDB::readNodeFiles(arg);
 	terrain->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
-	root->addChild(terrain);
+	root->addChild(terrain.get());
 
+	// human
+#if PNG
 	s_image_red = osgDB::readImageFile("../data/human_red.png");
 	s_image_blue = osgDB::readImageFile("../data/human_blue.png");
 	s_image_yellow = osgDB::readImageFile("../data/human_yellow.png");
 
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->setDataVariance(osg::Object::DYNAMIC);
-	// human
-#if 0
-	osg::ref_ptr<osg::DrawPixels> dp = new osg::DrawPixels;
-	dp->setDataVariance(osg::Object::DYNAMIC);
-	dp->setPosition(osg::Vec3(429320.1393, 3387250.208, 950.f));
-	s_image_red->scaleImage(100, 100, 1);
-	s_image_blue->scaleImage(100, 100, 1);
-	s_image_yellow->scaleImage(100, 100, 1);
-	dp->setImage(s_image_red.get());
-	dp->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-	dp->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	geode->addDrawable(dp.get());
-
-	dp->setUpdateCallback(new DrawpixelsUpdateCallback(mp.getPosition()));
-#else
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
 	geom->setDataVariance(osg::Object::DYNAMIC);
 
@@ -265,19 +342,23 @@ int main(int argc, char** argv) {
 	geom->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 	geom->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	geode->addDrawable(geom);
-#endif
+
 	root->addChild(geode);
+#endif
+#if MODEL
+	osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/Finn/Finn.obj");
+	osg::ref_ptr<osg::PositionAttitudeTransform> pat = new osg::PositionAttitudeTransform;
+	pat->setDataVariance(osg::Object::DYNAMIC);
+	pat->setPosition(osg::Vec3(430320.13929, 3387250.20839, 1500.f));
+	pat->setScale(osg::Vec3(100, 100, 100));
+	pat->addChild(model.get());
+	root->addChild(pat.get());
+#endif
 
 	// speed
 	s_speed = new osgText::Text;
 	s_speed->setDataVariance(osg::Object::DYNAMIC);
 	root->addChild(create_text(s_speed.get()));
-
-#if 0
-	osg::ref_ptr<osgText::Text> logo = new osgText::Text;
-	logo->setText(L"虚拟地理环境教育部重点实验室");
-	root->addChild(create_text(logo.get()));
-#endif
 
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(root.get());
@@ -286,7 +367,15 @@ int main(int argc, char** argv) {
 
 	MotionParser mp;
 	mp.parse("../data/motion_xy.csv");
+
+#if PNG
 	geom->setUpdateCallback(new GeomUpdateCallback(mp.getPosition()));
+#endif
+#if MODEL
+
+	geode->setUpdateCallback(new GeodeUpdateCallback(mp.getPosition()));
+	pat->setUpdateCallback(new PatUpdateCallback(mp.getPosition()));
+#endif
 
 	viewer.addEventHandler(new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()));
 	viewer.addEventHandler(new osgViewer::ThreadingHandler);
