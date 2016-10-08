@@ -23,8 +23,8 @@
 
 #include "MotionParser.h"
 
-#define MODEL 1
-#define PNG 0
+#define MODEL 0
+#define PNG 1
 
 static osg::ref_ptr<osg::Image> s_image_red, s_image_blue, s_image_yellow;
 static osg::ref_ptr<osgText::Text> s_speed;
