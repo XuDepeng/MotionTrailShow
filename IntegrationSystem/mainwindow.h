@@ -25,14 +25,14 @@ private:
 
 	QString conDB(const QString& dbName,
 		const QString& host = "localhost",
-		const QString& usr = "root", 
+		const QString& usr = "root",
 		const QString& pwd = "root");
 
 	void addViewWidget();
 
 	QList<common::Pos> importPath();
 
-private slots:
+	private slots:
 	void openProj();
 	void saveProj();
 	void clsProj();

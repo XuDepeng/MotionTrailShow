@@ -14,7 +14,7 @@
 #include <QSqlQuery>
 
 MainWindow::MainWindow(QWidget* parent)
-	: QMainWindow(parent) {
+: QMainWindow(parent) {
 	ui.setupUi(this);
 
 	setWindowTitle(QStringLiteral("运动轨迹展示系统"));
@@ -31,8 +31,8 @@ void MainWindow::initSkin(const QString& filename) {
 	QFile f(filename);
 	if (!f.exists()) {
 		QMessageBox::warning(this,
-							 QStringLiteral("警告"),
-							 QStringLiteral("皮肤初始化失败！"));
+			QStringLiteral("警告"),
+			QStringLiteral("皮肤初始化失败！"));
 	}
 	else {
 		f.open(QFile::ReadOnly | QFile::Text);
@@ -85,7 +85,6 @@ void MainWindow::initBar() {
 	confPerson = new ConfPerson(this);
 	connect(confPersonAction, SIGNAL(triggered(bool)), confPerson, SLOT(open()));
 
-
 	// help menu
 	ui.menuBar->addMenu(QStringLiteral("帮助"));
 
@@ -93,25 +92,24 @@ void MainWindow::initBar() {
 	ui.mainToolBar->setIconSize(QSize(16, 16));
 	ui.mainToolBar->addAction(startAnimateAction);
 
-
 	pauseAnimateAction = new QAction(QIcon("../resources/pause.png"), QStringLiteral("播放"), this);
 	ui.mainToolBar->addAction(pauseAnimateAction);
 }
 
 QString MainWindow::conDB(const QString& dbName,
-					   const QString& host,
-					   const QString& usr,
-					   const QString& pwd) {
+	const QString& host,
+	const QString& usr,
+	const QString& pwd) {
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
 	db.setHostName(host);
 	db.setDatabaseName(dbName);
 	db.setUserName(usr);
 	db.setPassword(pwd);
-		
+
 	if (!db.open()) {
 		QMessageBox::critical(this,
-							  "Database Error",
-							  db.lastError().text());
+			"Database Error",
+			db.lastError().text());
 		return QString::null;
 	}
 	return db.connectionName();
@@ -119,28 +117,28 @@ QString MainWindow::conDB(const QString& dbName,
 
 void MainWindow::openProj() {
 	QString prj_path = QFileDialog::getOpenFileName(this,
-													QStringLiteral("打开工程文件"),
-													"../",
-													QStringLiteral("工程文件 (*.prj)"));
+		QStringLiteral("打开工程文件"),
+		"../",
+		QStringLiteral("工程文件 (*.prj)"));
 	if (prj_path.isEmpty()) {
 		QMessageBox::information(this,
-								 QStringLiteral("提示"),
-								 QStringLiteral("请添加工程文件！"),
-								 QStringLiteral("是"));
+			QStringLiteral("提示"),
+			QStringLiteral("请添加工程文件！"),
+			QStringLiteral("是"));
 		return;
 	}
 
 	QFile prj_file(prj_path);
 	if (!prj_file.exists()) {
 		QMessageBox::warning(this,
-							 QStringLiteral("警告"),
-							 QStringLiteral("工程文件不存在！"));
+			QStringLiteral("警告"),
+			QStringLiteral("工程文件不存在！"));
 	}
 
 	if (!prj_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		QMessageBox::warning(this,
-							 QStringLiteral("警告"),
-							 QStringLiteral("工程文件不能打开！"));
+			QStringLiteral("警告"),
+			QStringLiteral("工程文件不能打开！"));
 	}
 
 	clsProj();
@@ -160,9 +158,9 @@ void MainWindow::openProj() {
 
 void MainWindow::saveProj() {
 	QString prj_path = QFileDialog::getSaveFileName(this,
-													QStringLiteral("保存工程文件"),
-													"../",
-													QStringLiteral("工程文件 (*.prj)"));
+		QStringLiteral("保存工程文件"),
+		"../",
+		QStringLiteral("工程文件 (*.prj)"));
 
 	QFile prj_file(prj_path);
 	if (!prj_file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -190,14 +188,14 @@ void MainWindow::clsProj() {
 
 void MainWindow::addMap() {
 	QString map_path = QFileDialog::getOpenFileName(this,
-													QStringLiteral("导入地形"),
-													"../",
-													QStringLiteral("地形文件 (*.ive *.osg *.3ds)"));
+		QStringLiteral("导入地形"),
+		"../",
+		QStringLiteral("地形文件 (*.ive *.osg *.3ds)"));
 	if (map_path.isEmpty()) {
 		QMessageBox::information(this,
-								 QStringLiteral("提示"),
-								 QStringLiteral("请添加地形文件！"),
-								 QStringLiteral("是"));
+			QStringLiteral("提示"),
+			QStringLiteral("请添加地形文件！"),
+			QStringLiteral("是"));
 		return;
 	}
 

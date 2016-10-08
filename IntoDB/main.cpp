@@ -15,7 +15,7 @@ bool connect(const QString& dbName) {
 	db.setPassword("root");
 	if (!db.open()) {
 		qDebug() << "Database Error"
-				<< db.lastError().text();
+			<< db.lastError().text();
 		return false;
 	}
 	return true;
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 	mp.parse("../data/motion_xy.csv");
 
 	if (!connect("motiontrail")) {
-		return 1;	
+		return 1;
 	}
 
 	QSqlQuery query;

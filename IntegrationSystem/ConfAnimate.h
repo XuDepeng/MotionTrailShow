@@ -14,11 +14,11 @@ public:
 	ConfAnimate(QWidget* parent = 0);
 	~ConfAnimate();
 
-	public slots:
+public slots:
 	void setAnimate();
 	void resetAnimate();
 
-signals:
+	signals:
 	void animateInfo(int interval, common::Color c);
 
 private:

@@ -12,7 +12,7 @@
 #include <osgUtil/Optimizer>
 
 ViewerWidget::ViewerWidget(const QString& terrain, const QString& target,
-						   osgViewer::ViewerBase::ThreadingModel threadingModel) : QWidget() {
+	osgViewer::ViewerBase::ThreadingModel threadingModel) : QWidget() {
 	setThreadingModel(threadingModel);
 	setKeyEventSetsDone(0);
 	setDataVariance(Object::DYNAMIC);
@@ -23,9 +23,7 @@ ViewerWidget::ViewerWidget(const QString& terrain, const QString& target,
 	m_terrain->setDataVariance(osg::Object::DYNAMIC);
 
 	osg::BoundingSphere bs = m_terrain->computeBound();
-
-	// common::Pos p = { 429320.13929f, 3387250.20839f, 450.f, common::ACCELERATE };
-	common::Pos p = {bs.center().x(), bs.center().y(), bs.center().z(), common::ACCELERATE};
+	common::Pos p = { bs.center().x(), bs.center().y(), bs.center().z(), common::ACCELERATE };
 
 	m_target = createTarget(target, p);
 	m_target->setDataVariance(osg::Object::DYNAMIC);
@@ -58,7 +56,7 @@ void ViewerWidget::init() {
 	m_view = new osgViewer::View;
 	m_view->setDataVariance(Object::DYNAMIC);
 
-	m_person = {"unnamed", 0, 0, 0};
+	m_person = { "unnamed", 0, 0, 0 };
 	m_idx = 0;
 	m_interval = 500;
 }
@@ -92,7 +90,7 @@ QWidget* ViewerWidget::addViewWidget(osgQt::GraphicsWindowQt* gw) {
 	camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
 	camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
 	camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width) /
-											 static_cast<double>(traits->height), 1.0f, 10000.0f);
+		static_cast<double>(traits->height), 1.0f, 10000.0f);
 
 	// light off, from wherever the image looks the same
 	osg::ref_ptr<osg::Geode> tar_geode = new osg::Geode;
@@ -168,29 +166,29 @@ void ViewerWidget::updateTarget() {
 
 	// update texture
 	osg::ref_ptr<osg::StateAttribute> sa =
-			m_target->getOrCreateStateSet()->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
+		m_target->getOrCreateStateSet()->getTextureAttribute(0, osg::StateAttribute::TEXTURE);
 	osg::ref_ptr<osg::Texture2D> texture = (osg::Texture2D*)sa->asTexture();
 
 	switch (m_plist[m_idx].state) {
-		case common::CONSTANT:
-			texture->setImage(m_image_yellow);
-			break;
-		case common::ACCELERATE:
-			texture->setImage(m_image_red);
-			break;
-		case common::DECELERTATE:
-			texture->setImage(m_image_blue);
-			break;
-		default:
-			texture->setImage(m_image_yellow);
-			break;
+	case common::CONSTANT:
+		texture->setImage(m_image_yellow);
+		break;
+	case common::ACCELERATE:
+		texture->setImage(m_image_red);
+		break;
+	case common::DECELERTATE:
+		texture->setImage(m_image_blue);
+		break;
+	default:
+		texture->setImage(m_image_yellow);
+		break;
 	}
 
 	if (m_idx > 0) {
 		float offset = m_plist[m_idx] - m_plist[m_idx - 1];
 		QString s = QStringLiteral("当前运动目标名称:%1\n")
-				+ QStringLiteral("当前速度:%2 m/s\n")
-				+ QStringLiteral("当前热量:%3 cal");
+			+ QStringLiteral("当前速度:%2 m/s\n")
+			+ QStringLiteral("当前热量:%3 cal");
 		s = s.arg(m_person.name).arg(offset).arg(m_person.weight * offset * 1.036);
 		m_speed->setText(s.toStdWString().c_str());
 

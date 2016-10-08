@@ -12,19 +12,19 @@ class ViewerWidget : public QWidget, public osgViewer::CompositeViewer {
 	Q_OBJECT
 public:
 	ViewerWidget(const QString& terrain, const QString& target,
-		osgViewer::ViewerBase::ThreadingModel threadingModel =osgViewer::CompositeViewer::SingleThreaded);
+		osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::CompositeViewer::SingleThreaded);
 	~ViewerWidget();
 
 	void setPath(const QList<common::Pos>& p);
 
-public slots:
+	public slots:
 	void setAnimateInfo(int interval, common::Color c);
 	void setPersonInfo(common::Person p);
 
 	void play();
 	void pause();
 
-private slots:
+	private slots:
 	void updateTarget();
 
 signals:
