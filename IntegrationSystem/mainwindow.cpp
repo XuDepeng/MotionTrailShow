@@ -13,6 +13,9 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
+#include <QSplitter>
+#include <QTreeWidget>
+
 MainWindow::MainWindow(QWidget* parent)
 : QMainWindow(parent) {
 	ui.setupUi(this);
@@ -22,6 +25,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 	initSkin("../style/style.qss");
 	initBar();
+	initWidget();
 }
 
 MainWindow::~MainWindow() {
@@ -94,6 +98,21 @@ void MainWindow::initBar() {
 
 	pauseAnimateAction = new QAction(QIcon("../resources/pause.png"), QStringLiteral("²¥·Å"), this);
 	ui.mainToolBar->addAction(pauseAnimateAction);
+}
+
+void MainWindow::initWidget() {
+	QPointer<QGridLayout> gLayout = new QGridLayout;
+	splitter = new QSplitter(Qt::Horizontal, this);
+	tree = new QTreeWidget(splitter);
+	tree->setMaximumWidth(250);
+	splitter->addWidget(tree);
+
+	blankBoard = new QWidget(splitter);
+	blankBoard->setStyleSheet("background-color:gray;");
+	splitter->addWidget(blankBoard);
+
+	gLayout->addWidget(splitter);
+	centralWidget()->setLayout(gLayout);
 }
 
 QString MainWindow::conDB(const QString& dbName,
@@ -184,6 +203,10 @@ void MainWindow::clsProj() {
 
 		m_prj = {};
 	}
+
+	if (blankBoard->isHidden()) {
+		blankBoard->show();
+	}
 }
 
 void MainWindow::addMap() {
@@ -234,11 +257,15 @@ void MainWindow::setStatusBar(QString str) {
 }
 
 void MainWindow::addViewWidget() {
+	if (!blankBoard.isNull()) {
+		blankBoard->hide();
+	}
+	
 	viewWidget = new ViewerWidget(m_prj.terrain_path,
 		"../resources/human_red.png",
 		osgViewer::ViewerBase::SingleThreaded);
 	viewWidget->setGeometry(100, 100, 800, 600);
-	this->setCentralWidget(viewWidget);
+	splitter->addWidget(viewWidget);
 
 	connect(startAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(play()));
 	connect(pauseAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(pause()));

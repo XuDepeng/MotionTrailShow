@@ -12,6 +12,9 @@ class ConfPerson;
 class ConfAnimate;
 class AddPath;
 
+class QSplitter;
+class QTreeWidget;
+
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 
@@ -22,6 +25,7 @@ public:
 private:
 	void initSkin(const QString& filename);
 	void initBar();
+	void initWidget();
 
 	QString conDB(const QString& dbName,
 		const QString& host = "localhost",
@@ -44,6 +48,11 @@ private:
 	void setStatusBar(QString str);
 private:
 	Ui::IntegrationSystemClass ui;
+
+	QPointer<QSplitter> splitter;
+	QPointer<QTreeWidget> tree;
+	QPointer<QWidget> blankBoard;
+
 	QPointer<ViewerWidget> viewWidget;
 	QPointer<ConfAnimate> confAnimate;
 	QPointer<ConfPerson> confPerson;
