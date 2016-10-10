@@ -243,13 +243,6 @@ void MainWindow::openPath() {
 	}
 	connect(addPat, SIGNAL(dbInfo(common::Proj)), this, SLOT(addPath(common::Proj)));
 	addPat->exec();
-	
-	setPath();
-
-	QMessageBox::information(this,
-		QStringLiteral("Ã·–—"),
-		QStringLiteral("πÏº£º”‘ÿÕÍ±œ£°")
-		);
 }
 
 void MainWindow::setMap(const QString& m) {

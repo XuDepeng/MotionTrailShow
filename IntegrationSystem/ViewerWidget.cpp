@@ -16,6 +16,7 @@ ViewerWidget::ViewerWidget(const QString& terrain, const QString& target,
 	setThreadingModel(threadingModel);
 	setKeyEventSetsDone(0);
 	setDataVariance(Object::DYNAMIC);
+	setContentsMargins(0, 0, 0, 0);
 
 	init();
 
