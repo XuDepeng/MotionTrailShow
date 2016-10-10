@@ -246,6 +246,10 @@ void MainWindow::openPath() {
 }
 
 void MainWindow::setMap(const QString& m) {
+	if (m == m_prj.terrain_path) {
+		return;
+	}
+
 	m_prj.terrain_path = m;
 
 	QTreeWidgetItem* root = tree->topLevelItem(0);
@@ -298,19 +302,21 @@ void MainWindow::addViewWidget() {
 	if (!blankBoard.isNull()) {
 		blankBoard->hide();
 	}
-	
-	viewWidget = new ViewerWidget(m_prj.terrain_path,
-		"../resources/human_red.png",
-		osgViewer::ViewerBase::SingleThreaded);
-	viewWidget->setGeometry(100, 100, 800, 600);
-	splitter->addWidget(viewWidget);
 
-	connect(startAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(play()));
-	connect(pauseAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(pause()));
+	if (viewWidget.isNull()) {
+		viewWidget = new ViewerWidget(m_prj.terrain_path,
+			"../resources/human_red.png",
+			osgViewer::ViewerBase::SingleThreaded);
+		viewWidget->setGeometry(100, 100, 800, 600);
+		splitter->addWidget(viewWidget);
 
-	connect(viewWidget, SIGNAL(currentPos(QString)), this, SLOT(setStatusBar(QString)));
-	connect(confPerson, SIGNAL(personInfo(common::Person)), viewWidget, SLOT(setPersonInfo(common::Person)));
-	connect(confAnimate, SIGNAL(animateInfo(int, common::Color)), viewWidget, SLOT(setAnimateInfo(int, common::Color)));
+		connect(startAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(play()));
+		connect(pauseAnimateAction, SIGNAL(triggered(bool)), viewWidget, SLOT(pause()));
+
+		connect(viewWidget, SIGNAL(currentPos(QString)), this, SLOT(setStatusBar(QString)));
+		connect(confPerson, SIGNAL(personInfo(common::Person)), viewWidget, SLOT(setPersonInfo(common::Person)));
+		connect(confAnimate, SIGNAL(animateInfo(int, common::Color)), viewWidget, SLOT(setAnimateInfo(int, common::Color)));
+	}
 
 	QMessageBox::information(this,
 		QStringLiteral("Ьсаб"),
