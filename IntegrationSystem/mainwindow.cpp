@@ -240,13 +240,18 @@ void MainWindow::openMap() {
 void MainWindow::openPath() {
 	if (addPat.isNull()) {
 		addPat = new AddPath(this);
+		connect(addPat, SIGNAL(dbInfo(common::Proj)), this, SLOT(addPath(common::Proj)));
 	}
-	connect(addPat, SIGNAL(dbInfo(common::Proj)), this, SLOT(addPath(common::Proj)));
 	addPat->exec();
 }
 
 void MainWindow::setMap(const QString& m) {
-	if (m == m_prj.terrain_path) {
+	QDir dir_a(m), dir_b(m_prj.terrain_path);
+
+	if (dir_a.absolutePath() == dir_b.absolutePath()) {
+		QMessageBox::warning(this,
+			QStringLiteral("警告"),
+			QStringLiteral("地形已加载！"));
 		return;
 	}
 
@@ -287,6 +292,15 @@ void MainWindow::setPath() {
 }
 
 void MainWindow::addPath(common::Proj p) {
+	if ((p.hostname == m_prj.hostname)
+		&&(p.dbname==m_prj.dbname)
+		&&(p.tablename==m_prj.tablename)) {
+		QMessageBox::warning(this,
+			QStringLiteral("警告"),
+			QStringLiteral("轨迹已加载！"));
+		return;
+	}
+
 	p.terrain_path = m_prj.terrain_path;
 	m_prj = p;
 
@@ -316,12 +330,13 @@ void MainWindow::addViewWidget() {
 		connect(viewWidget, SIGNAL(currentPos(QString)), this, SLOT(setStatusBar(QString)));
 		connect(confPerson, SIGNAL(personInfo(common::Person)), viewWidget, SLOT(setPersonInfo(common::Person)));
 		connect(confAnimate, SIGNAL(animateInfo(int, common::Color)), viewWidget, SLOT(setAnimateInfo(int, common::Color)));
-	}
 
-	QMessageBox::information(this,
-		QStringLiteral("提醒"),
-		QStringLiteral("地形加载完毕！")
-		);
+
+		QMessageBox::information(this,
+			QStringLiteral("提醒"),
+			QStringLiteral("地形加载完毕！")
+			);
+	}
 }
 
 QList<common::Pos> MainWindow::importPath() {
