@@ -27,6 +27,9 @@ private:
 	void initBar();
 	void initWidget();
 
+	void setMap(const QString& mapname);
+	void setPath();
+
 	QString conDB(const QString& dbName,
 		const QString& host = "localhost",
 		const QString& usr = "root",
@@ -41,8 +44,8 @@ private:
 	void saveProj();
 	void clsProj();
 
-	void addMap();
-	void addPath();
+	void openMap();
+	void openPath();
 	void addPath(common::Proj p);
 
 	void setStatusBar(QString str);

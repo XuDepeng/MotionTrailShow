@@ -66,15 +66,14 @@ void MainWindow::initBar() {
 	addMapAction = new QAction(QIcon("../resources/map.png"), QStringLiteral("导入"), this);
 	addMapAction->setShortcut(tr("ctrl+t"));
 	terrain->addAction(addMapAction);
-	connect(addMapAction, SIGNAL(triggered(bool)), this, SLOT(addMap()));
+	connect(addMapAction, SIGNAL(triggered(bool)), this, SLOT(openMap()));
 
 	QPointer<QMenu> path = ui.menuBar->addMenu(QStringLiteral("轨迹"));
 	addPathAction = new QAction(QIcon("../resources/path.png"), QStringLiteral("导入"), this);
 	addPathAction->setShortcut(tr("ctrl+p"));
 	path->addAction(addPathAction);
-	addPat = new AddPath(this);
-	connect(addPathAction, SIGNAL(triggered(bool)), addPat, SLOT(open()));
-	connect(addPat, SIGNAL(dbInfo(common::Proj)), this, SLOT(addPath(common::Proj)));
+	connect(addPathAction, SIGNAL(triggered(bool)), this, SLOT(openPath()));
+
 
 	QPointer<QMenu> conf = ui.menuBar->addMenu(QStringLiteral("设置"));
 	confAnimateAction = new QAction(QIcon("../resources/animation.png"), QStringLiteral("动画参数"), this);
@@ -168,11 +167,10 @@ void MainWindow::openProj() {
 	m_prj.pwd = prj_file.readLine().trimmed();
 	m_prj.tablename = prj_file.readLine().trimmed();
 	m_prj.terrain_path = prj_file.readLine().trimmed();
-
 	prj_file.close();
 
 	addViewWidget();
-	addPath();
+	setPath();
 }
 
 void MainWindow::saveProj() {
@@ -209,7 +207,7 @@ void MainWindow::clsProj() {
 	}
 }
 
-void MainWindow::addMap() {
+void MainWindow::openMap() {
 	QString map_path = QFileDialog::getOpenFileName(this,
 		QStringLiteral("导入地形"),
 		"../",
@@ -226,17 +224,14 @@ void MainWindow::addMap() {
 	addViewWidget();
 }
 
-void MainWindow::addPath() {
-	QString con_name = conDB(m_prj.dbname, m_prj.hostname, m_prj.usrname, m_prj.pwd);
-	if (con_name.isNull()) {
-		return;
+void MainWindow::openPath() {
+	if (addPat.isNull()) {
+		addPat = new AddPath(this);
 	}
-
-	QList<common::Pos> pos_lst = importPath();
-	viewWidget->setPath(pos_lst);
-	pos_lst.clear();
-
-	QSqlDatabase::removeDatabase(con_name);
+	connect(addPat, SIGNAL(dbInfo(common::Proj)), this, SLOT(addPath(common::Proj)));
+	addPat->exec();
+	
+	setPath();
 
 	QMessageBox::information(this,
 		QStringLiteral("提醒"),
@@ -244,11 +239,37 @@ void MainWindow::addPath() {
 		);
 }
 
+void MainWindow::setMap(const QString& m) {
+	m_prj.terrain_path = m;
+}
+
+void MainWindow::setPath() {
+	QString con_name = conDB(m_prj.dbname, m_prj.hostname, m_prj.usrname, m_prj.pwd);
+	if (con_name.isNull()) {
+		QMessageBox::critical(this,
+			QStringLiteral("错误"),
+			QStringLiteral("路径未加载！")
+			);
+		return;
+	}
+
+	QList<common::Pos> pos_lst = importPath();
+	viewWidget->setPath(pos_lst);
+	pos_lst.clear();
+
+	QMessageBox::information(this,
+		QStringLiteral("提醒"),
+		QStringLiteral("轨迹加载完毕！")
+		);
+
+	QSqlDatabase::removeDatabase(con_name);
+}
+
 void MainWindow::addPath(common::Proj p) {
 	p.terrain_path = m_prj.terrain_path;
 	m_prj = p;
 
-	addPath();
+	setPath();
 }
 
 void MainWindow::setStatusBar(QString str) {
