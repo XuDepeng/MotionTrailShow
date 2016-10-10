@@ -104,6 +104,13 @@ void MainWindow::initWidget() {
 	splitter = new QSplitter(Qt::Horizontal, this);
 	tree = new QTreeWidget(splitter);
 	tree->setMaximumWidth(250);
+	tree->setColumnCount(1);
+	tree->header()->close();
+	QTreeWidgetItem *root = new QTreeWidgetItem(tree, QStringList(QString("Root")));
+	QList<QTreeWidgetItem*> topItems;
+	topItems.append(new QTreeWidgetItem(root, QStringList(QStringLiteral("地形"))));
+	topItems.append(new QTreeWidgetItem(root, QStringList(QStringLiteral("轨迹"))));
+
 	splitter->addWidget(tree);
 
 	blankBoard = new QWidget(splitter);
@@ -166,7 +173,7 @@ void MainWindow::openProj() {
 	m_prj.usrname = prj_file.readLine().trimmed();
 	m_prj.pwd = prj_file.readLine().trimmed();
 	m_prj.tablename = prj_file.readLine().trimmed();
-	m_prj.terrain_path = prj_file.readLine().trimmed();
+	setMap(prj_file.readLine().trimmed());
 	prj_file.close();
 
 	addViewWidget();
@@ -205,6 +212,12 @@ void MainWindow::clsProj() {
 	if (blankBoard->isHidden()) {
 		blankBoard->show();
 	}
+
+	QTreeWidgetItem* root = tree->topLevelItem(0);
+	if (root) {
+		root->child(0)->takeChildren();
+		root->child(1)->takeChildren();
+	}
 }
 
 void MainWindow::openMap() {
@@ -220,7 +233,7 @@ void MainWindow::openMap() {
 		return;
 	}
 
-	m_prj.terrain_path = map_path;
+	setMap(map_path);
 	addViewWidget();
 }
 
@@ -241,6 +254,11 @@ void MainWindow::openPath() {
 
 void MainWindow::setMap(const QString& m) {
 	m_prj.terrain_path = m;
+
+	QTreeWidgetItem* root = tree->topLevelItem(0);
+	QTreeWidgetItem* leaf_terrain = root->child(0);
+	QTreeWidgetItem* terrain_item =
+		new QTreeWidgetItem(leaf_terrain, QStringList(m.split('/').last()));
 }
 
 void MainWindow::setPath() {
@@ -261,6 +279,12 @@ void MainWindow::setPath() {
 		QStringLiteral("提醒"),
 		QStringLiteral("轨迹加载完毕！")
 		);
+
+	QTreeWidgetItem* root = tree->topLevelItem(0);
+	QTreeWidgetItem* leaf_terrain = root->child(1);
+	QStringList lst(m_prj.dbname + '.' + m_prj.tablename);
+	QTreeWidgetItem* terrain_item =
+		new QTreeWidgetItem(leaf_terrain, lst);
 
 	QSqlDatabase::removeDatabase(con_name);
 }
