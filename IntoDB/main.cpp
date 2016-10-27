@@ -34,7 +34,7 @@ int main(int argc, char** argv){
 		driver = get_driver_instance();
 		con = driver->connect("tcp://127.0.0.1:3306", "root", "root");
 		/* Connect to the MySQL test database */
-		con->setSchema("test");
+		con->setSchema("motiontrail");
 
 		stmt = con->createStatement();
 		stmt->execute("DROP TABLE IF EXISTS path");
